@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:padding="16dp">
+
+    <android.widget.Button
+            android:id="@+id/buttonActivateNavigation"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#0070BF"
+            android:text="내비게이션\n활성화"
+            android:textColor="#FFFFFF"
+            android:textSize="35sp" />
+
+    <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"/>
+
+    <android.widget.Button
+            android:id="@+id/buttonStartGuide"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#0070BF"
+            android:text="내비게이션\n없이 안내"
+            android:textColor="#FFFFFF"
+            android:textSize="35sp" />
+
+</LinearLayout>

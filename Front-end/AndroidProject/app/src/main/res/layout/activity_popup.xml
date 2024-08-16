@@ -1,0 +1,19 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textViewPopup"
+        android:layout_width="500dp"
+        android:layout_height="147dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="60dp"
+        android:background="@drawable/rounded_textbox"
+        android:gravity="center"
+        android:text="⚠ 전방에 자전거가 있습니다.\n오른쪽으로 피하세요."
+        android:textColor="#000000"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+</RelativeLayout>
