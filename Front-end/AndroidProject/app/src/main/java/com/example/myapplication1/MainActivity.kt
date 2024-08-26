@@ -32,6 +32,7 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.res.AssetManager
+import android.media.MediaPlayer
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -45,6 +46,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textToSpeech: TextToSpeech
     private lateinit var popupWindow: PopupWindow
     private lateinit var currentPopupText: String
+    private lateinit var dingLeftPlayer: MediaPlayer
+    private lateinit var dingRightPlayer: MediaPlayer
 
     private var isVibrateModeOn: Boolean = false
     private var isExiting: Boolean = false
@@ -64,6 +67,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        dingLeftPlayer = MediaPlayer.create(this, R.raw.ding_left)
+        dingRightPlayer = MediaPlayer.create(this, R.raw.ding_right)
 
         lastDetectionTime = System.currentTimeMillis()
 
@@ -268,18 +274,34 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val popupText = popupView.findViewById<TextView>(R.id.textViewPopup)
             popupText.text = text
 
-            val params = Bundle().apply {
-                putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "popupTTS")
-            }
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, params, "popupTTS")
-
             // 진동 모드가 켜져 있는 경우, 방향에 따라 진동 실행
             if (isVibrateModeOn) {
+                val params = Bundle().apply {
+                    putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "popupTTS")
+                }
+                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, params, "popupTTS")
+
                 if (direction == "오른쪽으로") {
                     vibrateMultipleTimes(2)
                 } else {
                     vibrateMultipleTimes(1)
                 }
+            } else {
+                // 진동 모드가 꺼져 있는 경우, 방향에 따라 소리 재생
+                val mediaPlayer = when (direction) {
+                    "오른쪽으로" -> dingRightPlayer
+                    else -> dingLeftPlayer
+                }
+
+                // 소리 재생 후 TTS 실행
+                mediaPlayer.setOnCompletionListener {
+                    val params = Bundle().apply {
+                        putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "popupTTS")
+                    }
+                    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, params, "popupTTS")
+                }
+
+                mediaPlayer.start()
             }
         }
     }
@@ -380,6 +402,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textToSpeech.stop()
             textToSpeech.shutdown()
         }
+        if (::dingLeftPlayer.isInitialized) {
+            dingLeftPlayer.release()
+        }
+        if (::dingRightPlayer.isInitialized) {
+            dingRightPlayer.release()
+        }
         handler.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
@@ -447,29 +475,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             override fun onAnimationRepeat(animation: Animation?) {}
-        })
-    }
-
-    // 팝업 텍스트가 끝날 때까지 유지하도록 함
-    private fun handlePopupDismiss() {
-        textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {
-                // TTS 시작 시 아무 작업 필요 없음
-            }
-
-            override fun onDone(utteranceId: String?) {
-                // TTS 종료 시 팝업 닫기 애니메이션 시작
-                runOnUiThread {
-                    closePopupWithAnimation()
-                }
-            }
-
-            override fun onError(utteranceId: String?) {
-                // TTS 오류 시 팝업 닫기 애니메이션 시작
-                runOnUiThread {
-                    closePopupWithAnimation()
-                }
-            }
         })
     }
 
