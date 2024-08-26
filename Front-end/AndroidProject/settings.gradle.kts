@@ -22,6 +22,11 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://nexus.sktelecom.com/nexus/content/groups/public/")
         }
+        maven {
+            // TMAP SDK Repository 추가
+            url = uri("https://maven.tmap.co.kr")         // gpt 추천
+//            url = uri("https://devrepo.tmapadmin.com/repository/tmap-sdk-release/")     // T MAP API 공식 문서
+        }
     }
 }
 

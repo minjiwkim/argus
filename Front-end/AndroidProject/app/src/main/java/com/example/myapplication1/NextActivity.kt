@@ -31,6 +31,11 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
+import com.skt.Tmap.TMapData
+import com.skt.Tmap.TMapPoint
+import com.skt.Tmap.TMapTapi
+import com.skt.Tmap.TMapView
+
 class NextActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var tts: TextToSpeech
@@ -53,9 +58,15 @@ class NextActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // TMAP API Key
     private val TMAP_API_KEY = "mlGpROtiwp1mZcKqs8MJQ1imM6AeI4kw9oGIjuZj"
 
+    private lateinit var tmapTapi: TMapTapi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_next)
+
+        // TMAP API 초기화
+        tmapTapi = TMapTapi(this)
+        tmapTapi.setSKTMapAuthentication(TMAP_API_KEY)
 
         // 권한 체크 및 요청
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -174,14 +185,13 @@ class NextActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                val recognizedText = matches?.get(0) ?: "음성 인식 결과가 없습니다."
-                Toast.makeText(this@NextActivity, recognizedText, Toast.LENGTH_LONG).show()
+                val recognizedText = matches?.get(0) ?: return
 
+                // 지오코딩을 통한 목적지의 좌표 가져오기
                 geocodeAddress(recognizedText) { lat, lon ->
-                    startNavigation(lat, lon)
+                    // 경로 안내 시작
+                    startTmapNavigation(lat, lon)
                 }
-
-                cancelRetryHandler()
             }
         })
 
@@ -257,11 +267,25 @@ class NextActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         })
     }
 
+    private fun startTmapNavigation(latitude: Double, longitude: Double) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("tmap://route?goalLat=$latitude&goalLon=$longitude&goalName=목적지"))
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+
+        // TMap 앱이 설치되어 있는지 확인하고 실행
+        if (isTmapInstalled()) {
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "T맵이 설치되어 있지 않습니다. 설치 후 다시 시도해 주세요.", Toast.LENGTH_LONG).show()
+            val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.skt.tmap.ku"))
+            startActivity(marketIntent)
+        }
+    }
+
     private fun startNavigation(latitude: Double, longitude: Double) {
         launchTmap(latitude, longitude)
     }
 
-    fun isTmapInstalled(): Boolean {
+    private fun isTmapInstalled(): Boolean {
         return try {
             packageManager.getPackageInfo("com.skt.tmap.ku", PackageManager.GET_ACTIVITIES)
             true

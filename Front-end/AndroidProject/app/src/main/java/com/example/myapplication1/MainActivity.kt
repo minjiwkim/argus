@@ -428,6 +428,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setPermissions() {
         val permissions = ArrayList<String>()
         permissions.add(android.Manifest.permission.CAMERA)
+        permissions.add(android.Manifest.permission.RECORD_AUDIO)
+
 
         permissions.forEach {
             if (ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED) {
@@ -441,16 +443,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION) {
             grantResults.forEach {
                 if (it != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "권한을 허용하지 않으면 사용할 수 없습니다", Toast.LENGTH_SHORT).show()
-                    finish()
+                    finish() // Optionally, close the app if permission is not granted
                 }
             }
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
+
 
     // 팝업창 닫기 애니메이션
     private fun closePopupWithAnimation() {
